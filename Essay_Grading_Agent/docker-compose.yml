@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  app:
+    image: python:3.9-slim
+    container_name: langgraph_streamlit_app
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8501:8501"  # Exposing Streamlit's default port
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LANGCHAIN_API_KEY:'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'
+      - GROQ_API_KEY:'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'
+    env_file:
+      - .env  # Load environment variables from .env file (for python-dotenv)
+    command: >
+      bash -c "pip install --no-cache-dir -r requirements.txt &&
+               streamlit run app.py"  # Ensure your entry file is named app.py
+
+
+
+ 
