@@ -14,7 +14,9 @@ import streamlit as st
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = "Build Essay Grading agent"
 
-GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+GROQ_API_KEY = "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"
+
+
 
 # Initialize LLM
 llm = ChatGroq(
