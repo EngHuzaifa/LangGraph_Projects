@@ -1,7 +1,6 @@
 import os
 from typing_extensions import TypedDict
 import streamlit as st
-from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 from dotenv import load_dotenv
