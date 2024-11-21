@@ -3,7 +3,6 @@ from typing_extensions import TypedDict
 import streamlit as st
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
-from dotenv import load_dotenv
 from tavily import TavilyClient
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -11,8 +10,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 # Streamlit Title
 st.title("Gardening Assistant")
 
-# Load environment variables
-load_dotenv()
+
 groq_api_key: str = os.getenv("GEMINI_API_KEY")
 tavily_api_key: str = os.getenv("TAVILY_API_KEY")
 
