@@ -12,6 +12,12 @@ from dotenv import load_dotenv
 # Set environment variables
 load_dotenv()
 os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
+api_key = os.getenv("TAVILY_API_KEY")
+if api_key:
+    os.environ["TAVILY_API_KEY"] = api_key
+else:
+    raise EnvironmentError("TAVILY_API_KEY is not set in the environment variables.")
+
 os.environ["LANGSMITH_TRACING_V2"] = "true"
 gemini_api_key=os.getenv('GEMINI_API_KEY')
 tavily_api_key=os.getenv('TAVILY_API_KEY')
