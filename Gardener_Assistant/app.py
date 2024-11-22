@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 # Set environment variables
 load_dotenv()
-os.environ["TAVILY_API_KEY"] = os.getenv("TAVILY_API_KEY")
 api_key = os.getenv("TAVILY_API_KEY")
 if api_key:
     os.environ["TAVILY_API_KEY"] = api_key
