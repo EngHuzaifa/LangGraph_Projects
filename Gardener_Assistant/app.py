@@ -27,7 +27,7 @@ llm: ChatGoogleGenerativeAI = ChatGoogleGenerativeAI(
     api_key=gemini_api_key,
 )
 tavily_client = TavilyClient()
-tavily_search = TavilySearchResults(max_results=2, client=tavily_client)
+tavily_search = TavilySearchResults(max_results=1, client=tavily_client)
 
 # Define the GardenerState model
 class GardenerState(BaseModel):
@@ -119,7 +119,6 @@ if st.button("Submit"):
         st.subheader("Garden Analysis:")
         st.write(result.get("garden_analys", "No analysis available."))
 
-        st.subheader("Web Search Results:")
         st.write(result.get("search_results", "No search results available."))
 
         st.subheader("Plant Recommendations:")
