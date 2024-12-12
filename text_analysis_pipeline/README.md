@@ -1,4 +1,4 @@
-# Whisperer - AI Text Workflow Agent
+# AI Text Workflow Agent
 
 ## Overview
 
