@@ -29,11 +29,10 @@ def categorize(state: State) -> State:
     Fitness Plan, Nutrition, recommend_exercises,training_techniques,personalize_routine.
     """
     prompt = (
-    "Based on the following query, categorize it into one of these categories: "
+        "Based on the following query, categorize it into one of these categories: "
     "1) Fitness Plan, 2) Nutrition, 3) Recommend Exercises, "
-    "4) Training Techniques, 5) Personalize Routine. "
-    
-) + state["query"]
+    "4) Training Techniques, 5) Personalize Routine or perform web search "
+    )+ state["query"]
 
     category = llm.invoke(prompt).content.strip()
 
@@ -102,7 +101,7 @@ def personalize_routine(state: State) -> State:
 
     response = llm.invoke(prompt).content.strip()
     return {"response": response}
-'
+
 def perform_web_search(state: State) -> State:
     """
     Perform a web search based on the user's query using the Exa API.
@@ -133,23 +132,40 @@ def perform_web_search(state: State) -> State:
     except Exception as e:
         # Handle errors gracefully
         return {"response": f"An error occurred during the web search: {str(e)}"}
-    
-# Routing Logic
-def route_query(state: State) -> str:
-    route = None
-    if state.get("category") == "personalize_routine":
-        route = "personalize_routine"
-    elif state.get("category") == "Fitness Plan":
-        route = "handle_fitness_plan"
-    elif state.get("category") == "Nutrition":
-        route = "handle_nutrition"
-    elif state.get("category") == "recommend_exercises":
-        route = "recommend_exercises"
-    elif state.get("category") == "training_techniques":
-        route = "explain_training_techniques"
 
-    print(f"Routing Category: {state.get('category')}, Route: {route}")
-    return route
+def process_web_search_results(state: State) -> State:
+    """
+    Use the LLM to analyze and respond to the web search results.
+    """
+    perform_web_search= state.get("perform_web_search", "No results to process.")
+    query = state["query"]
+
+    # Combine user query and web search results for LLM processing
+    prompt = (
+        f"The user asked: '{query}'.\n"
+        f"Here are the web search results:\n{result}\n"
+        "Based on these results, provide a detailed and helpful response:"
+    )
+
+    response = llm.invoke(prompt).content.strip()
+    return {"response": response}
+
+    
+
+# Routing Logic# Routing Logic
+def route_query(state: State) -> str:
+    if state.get("category") == "personalize_routine":
+        return "personalize_routine"
+    elif state.get("category") == "Fitness Plan":
+        return "handle_fitness_plan"
+    elif state.get("category") == "Nutrition":
+        return "handle_nutrition"
+    elif state.get("category") == "recommend_exercises":
+        return "recommend_exercises"
+    elif state.get("category") == "training_techniques":
+        return "explain_training_techniques"
+    else:
+      return "perform_web_search"
 
     
 
@@ -163,8 +179,12 @@ workflow.add_node("handle_fitness_plan", handle_fitness_plan)
 workflow.add_node("handle_nutrition", handle_nutrition)
 workflow.add_node("explain_training_techniques", explain_training_techniques)
 workflow.add_node("personalize_routine", personalize_routine)
-#workflow.add_node("perform_web_search", perform_web_search)
+workflow.add_node("perform_web_search", perform_web_search)
+workflow.add_node("process_web_search_results", process_web_search_results)
 workflow.add_node("recommend_exercises", recommend_exercises)
+
+
+
 
 
 # Set entry point
@@ -179,7 +199,7 @@ workflow.add_conditional_edges(
         "recommend_exercises": "recommend_exercises",
         "explain_training_techniques": "explain_training_techniques",
         "personalize_routine": "personalize_routine",
-        #"perform_web_search": "perform_web_search"
+        "perform_web_search": "perform_web_search"
     }
 
     )
@@ -188,11 +208,17 @@ workflow.add_edge("handle_nutrition",END)
 workflow.add_edge("recommend_exercises",END)
 workflow.add_edge("explain_training_techniques",END)
 workflow.add_edge("personalize_routine",END)
-#workflow.add_edge("perform_web_search",END)
+workflow.add_edge("perform_web_search", "process_web_search_results")
+workflow.add_edge("process_web_search_results",END)
+
+
+
+
+
 
 # Compile Workflow
 memory = MemorySaver()
-graph: CompiledStateGraph = workflow.compile(checkpointer=memory)
+graph: CompiledStateGraph = workflow.compile(interrupt_before=["perform_web_search"],checkpointer=memory)
 
 
 
