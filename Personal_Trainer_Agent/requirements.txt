@@ -1,5 +1,6 @@
 langgraph
 langsmith
 langchain_community
-langchain_groq
+#langchain_groq
 exa_py
+langchain_google_genai 

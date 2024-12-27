@@ -5,13 +5,17 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, END
 
-
 groq_api_key = os.getenv('GROQ_API_KEY')
 
 # Initialize ChatGroq model
 llm = ChatGroq(model="llama-3.1-70b-versatile", api_key=groq_api_key)
 
-
+# Define a system message
+system_message = (
+    "You are a customer support assistant specializing in technical, billing, and general inquiries. "
+    "Your goal is to categorize customer queries and provide helpful, accurate responses based on their "
+    "category. If the query's sentiment is negative, escalate it to a human agent. Always ensure your responses are user-friendly."
+)
 
 class State(TypedDict):
     query: str
@@ -19,39 +23,20 @@ class State(TypedDict):
     sentiment: str
     response: str
 
-
 def categorize(state: State) -> State:
-    """
-    Categorize the customer query into one of the predefined categories:
-    Technical, Billing, or General.
-
-    Args:
-        state (State): A dictionary containing the customer query under the key "query".
-
-    Returns:
-        State: A dictionary containing the categorized result under the key "category".
-    """
     prompt = (
+        system_message + "\n"
         "Please categorize the following customer query into one of these categories: "
         "Technical, Billing, or General. Query: "
     ) + state["query"]
 
-    # Invoke the chain with a string input
     category = llm.invoke(prompt).content.strip()
 
     return {"category": category}
 
 def analyze_sentiment(state: State) -> State:
-    """
-    Analyze the sentiment of a customer query and classify it as Positive, Neutral, or Negative.
-
-    Args:
-        state (State): A dictionary containing the customer query under the key "query".
-
-    Returns:
-        State: A dictionary containing the sentiment classification under the key "sentiment".
-    """
     prompt = (
+        system_message + "\n"
         "Analyze the sentiment of the following customer query. "
         "Classify it as 'Positive', 'Neutral', or 'Negative'. Query: "
     ) + state["query"]
@@ -61,32 +46,19 @@ def analyze_sentiment(state: State) -> State:
     return {"sentiment": sentiment}
 
 def handle_technical(state: State) -> State:
-    """
-    Generate a technical support response to a customer query.
-    Ensure the Tavily search tool is invoked if the LLM response is insufficient.
-    """
     prompt = (
-        "Provide a technical support if customer ask latest updated  you call the tool and provide latest news about technical response to the following customer query: "
+        system_message + "\n"
+        "Provide a technical support response to the following customer query: "
     ) + state["query"]
 
     response = llm.invoke(prompt).content.strip()
 
-
-
     return {"response": response}
 
 def handle_billing(state: State) -> State:
-    """
-    Generate a billing support response to a customer query.
-
-    Args:
-        state (State): A dictionary containing the customer query under the key "query".
-
-    Returns:
-        State: A dictionary containing the generated billing support response under the key "response".
-    """
     prompt = (
-        "Provide a billing support if customer ask latest updated  you call the tool and provide latest news about billing response to the following customer query: "
+        system_message + "\n"
+        "Provide a billing support response to the following customer query: "
     ) + state["query"]
 
     response = llm.invoke(prompt).content.strip()
@@ -94,35 +66,25 @@ def handle_billing(state: State) -> State:
     return {"response": response}
 
 def handle_general(state: State) -> State:
-    """
-    Generate a general support response to a customer query.
-    Ensure the Tavily search tool.
-    """
     prompt = (
-        "Provide a general support if customer ask latest updated  you call the tool and provide latest news about general query response to the following customer query: "
+        system_message + "\n"
+        "Provide a general support response to the following customer query: "
     ) + state["query"]
 
     response = llm.invoke(prompt).content.strip()
 
-
     return {"response": response}
 
 def escalate(state: State) -> State:
-    """
-    Escalate the query to a human agent.
-    Always invoke the Tavily search tool to provide additional context.
-    """
-
     return {
-        "response": "This query has been escalated to a human agent due to its negative sentiment. "
-
+        "response": "This query has been escalated to a human agent due to its negative sentiment."
     }
 
 # Update Routing Logic
 def route_query(state: State) -> str:
     if state.get("sentiment") == "Negative":
         return "escalate"
-    elif "FAQ" in state["query"]:  # Example: Trigger web scraping for FAQ-related queries
+    elif "FAQ" in state["query"]:
         return "perform_web_scraping"
     elif state.get("category") == "Technical":
         return "handle_technical"
