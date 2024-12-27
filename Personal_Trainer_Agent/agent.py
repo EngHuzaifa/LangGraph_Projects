@@ -7,7 +7,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from exa_py import Exa
 from langchain_core.messages import SystemMessage
 
-# Global system message
 SYSTEM_MESSAGE = SystemMessage(content=(
     "You are a fitness and nutrition assistant. Your goal is to provide helpful "
     "recommendations and responses related to fitness plans, nutrition advice, "
