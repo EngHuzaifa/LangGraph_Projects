@@ -5,12 +5,13 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, END
 
+# Retrieve API key from environment variables
 groq_api_key = os.getenv('GROQ_API_KEY')
 
 # Initialize ChatGroq model
 llm = ChatGroq(model="llama-3.1-70b-versatile", api_key=groq_api_key)
 
-# Define a system message
+# Define a system message for the customer support assistant
 system_message = (
     "You are a customer support assistant specializing in technical, billing, and general inquiries. "
     "Your goal is to categorize customer queries and provide helpful, accurate responses based on their "
@@ -80,7 +81,6 @@ def escalate(state: State) -> State:
         "response": "This query has been escalated to a human agent due to its negative sentiment."
     }
 
-# Update Routing Logic
 def route_query(state: State) -> str:
     if state.get("sentiment") == "Negative":
         return "escalate"
@@ -93,9 +93,8 @@ def route_query(state: State) -> str:
     else:
         return "handle_general"
 
-# Create Workflow
+# Create and configure the workflow
 workflow = StateGraph(State)
-# Add nodes
 workflow.add_node("categorize", categorize)
 workflow.add_node("analyze_sentiment", analyze_sentiment)
 workflow.add_node("handle_technical", handle_technical)
@@ -103,7 +102,6 @@ workflow.add_node("handle_billing", handle_billing)
 workflow.add_node("handle_general", handle_general)
 workflow.add_node("escalate", escalate)
 
-# Set entry point
 workflow.set_entry_point("categorize")
 workflow.add_edge("categorize", "analyze_sentiment")
 workflow.add_conditional_edges(
@@ -121,6 +119,6 @@ workflow.add_edge("handle_billing", END)
 workflow.add_edge("handle_general", END)
 workflow.add_edge("escalate", END)
 
-# Compile Workflow
+# Compile the workflow with memory checkpointing
 memory = MemorySaver()
 graph: CompiledStateGraph = workflow.compile(checkpointer=memory)
