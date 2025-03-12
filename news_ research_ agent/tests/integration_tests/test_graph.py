@@ -12,7 +12,7 @@ async def test_react_agent_simple_passthrough() -> None:
         {
             "configurable": {
                 "system_prompt": "You are a helpful AI assistant.",
-                "model": "groq/llama-3.2-1b-preview",
+                "model": "gemini/gemini-2.0-flash",
             }
         },
     )

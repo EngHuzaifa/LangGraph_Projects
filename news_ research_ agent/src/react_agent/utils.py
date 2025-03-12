@@ -25,7 +25,7 @@ def load_chat_model(fully_specified_name: str) -> BaseChatModel:
     """
     provider, model = fully_specified_name.split("/", maxsplit=1)
 
-    if model == "gemini-1.5-flash":
+    if model == "gemini-2.0-flash":
         return init_chat_model(
             model, 
             model_provider=provider, 

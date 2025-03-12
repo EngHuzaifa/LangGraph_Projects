@@ -29,7 +29,7 @@ gemini_api_key= os.getenv('GOOGLE_API_KEY')
 # Initialize the LLM with the provided API key
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     api_key=gemini_api_key,
     temperature=0.1,
 )
@@ -275,6 +275,7 @@ def format_results(state: GraphState) -> GraphState:
     return state
 
 
+
 def send_news_summary_email(state: GraphState) -> GraphState:
     # Check if email is provided
     email = state.get("email")
@@ -288,13 +289,19 @@ def send_news_summary_email(state: GraphState) -> GraphState:
         state["formatted_results"] = "No formatted results available to send."
         return state
 
+    # Store original summary before modifying state
+    summary_output = formatted_results
+
+    # Display summary first
+    state["formatted_results"] = f"News Summary:\n\n{summary_output}"
+
     # Prepare email details
     subject = "Your Requested News Summary"
     message = f"""
     <html>
     <body>
         <p>Dear User,</p>
-        <p>Here is the summary of the news articles based on your query: <strong>{state['news_query']}</strong>.</p>
+        <p>Here is the summary of the news articles based on your query: <strong>{state.get('news_query', 'N/A')}</strong>.</p>
         <p>{formatted_results}</p>
         <p>Thank you for using our service!</p>
         <p>Best regards,<br>News Research Team</p>
@@ -305,10 +312,10 @@ def send_news_summary_email(state: GraphState) -> GraphState:
     # Configure sender details
     sender_email = os.getenv("SENDER_EMAIL", "muhammadhuzaifaai890@gmail.com")  # Replace with your sender email
     sender_name = os.getenv("SENDER_NAME", "Muhammad Huzaifa")  # Replace with your sender name
-    BREVO_API_KEY = os.getenv("BREVO_API_KEY")  # Load Brevo API key from environment variables
+    BREVO_API_KEY= userdata.get('BREVO_API_KEY')
 
     if not BREVO_API_KEY:
-        state["formatted_results"] = "Brevo API key not found. Cannot send email."
+        state["formatted_results"] += "\n\nBrevo API key not found. Cannot send email."
         return state
 
     # Create SendSmtpEmail object
@@ -328,9 +335,9 @@ def send_news_summary_email(state: GraphState) -> GraphState:
         api_client = sib_api_v3_sdk.ApiClient(configuration)
         api_instance = sib_api_v3_sdk.TransactionalEmailsApi(api_client)
         api_instance.send_transac_email(send_smtp_email)
-        state["formatted_results"] = f"News summary email sent to {email}."
+        state["formatted_results"] += f"\n\nNews summary email sent to {email}."
     except ApiException as e:
-        state["formatted_results"] = f"Failed to send email: {str(e)}"
+        state["formatted_results"] += f"\n\nFailed to send email: {str(e)}"
 
     return state
 
